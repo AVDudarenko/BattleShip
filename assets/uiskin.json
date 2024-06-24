@@ -1,21 +1,23 @@
 {
-  "com.badlogic.gdx.graphics.Color": {
-    "white": { "r": 1, "g": 1, "b": 1, "a": 1 },
-    "red": { "r": 1, "g": 0, "b": 0, "a": 1 },
-    "yellow": { "r": 0.5, "g": 0.5, "b": 0, "a": 1 }
+
+  BitmapFont: { default-font: { file: default.fnt } },
+  Color: {
+    green: { a: 1, b: 0, g: 1, r: 0 },
+    white: { a: 1, b: 1, g: 1, r: 1 },
+    red: { a: 1, b: 0, g: 0, r: 1 },
+    black: { a: 1, b: 0, g: 0, r: 0 }
   },
-  "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
+  "LabelStyle": {
     "default": {
-      "down": "round-down", "up": "round",
-      "font": "medium", "fontColor": "white"
-    },
-    "toggle": {
-      "down": "round-down", "up": "round", "checked": "round-down",
-      "font": "medium", "fontColor": "white", "checkedFontColor": "red"
-    },
-    "green": {
-      "down": "round-down", "up": "round",
-      "font": "medium", "fontColor": { "r": 0, "g": 1, "b": 0, "a": 1 }
+      "font": "default-font",
+      "fontColor": "white"
+    }
+  },
+  "TextButtonStyle": {
+    "default": {
+      "up": "default-round",
+      "down": "default-round-down",
+      "font": "default-font"
     }
   }
 }
