@@ -1,14 +1,11 @@
 package com.mygdx.game
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputProcessor
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -41,36 +38,13 @@ class GameScreen : Stage(ScreenViewport()), InputProcessor {
 		}
 	}
 	private val playerShips = mutableListOf<Ship>()
-
-	private lateinit var shaderBackground: ShaderProgram
-	private lateinit var shaderMask: ShaderProgram
-	private lateinit var textureBackground: Texture
-	private lateinit var textureMask: Texture
-	private lateinit var textureShip: Texture
+	private lateinit var hitTexture: Texture // Текстура попадания по кораблю
+	private lateinit var cellTexture: Texture // Текстура клетки игрового поля
 
 	init {
-
-		// Инициализация шейдеров
-//		shaderBackground = ShaderProgram(
-//			Gdx.files.internal("shaders/background.vert"),
-//			Gdx.files.internal("shaders/background.frag")
-//		)
-//		shaderMask = ShaderProgram(
-//			Gdx.files.internal("shaders/mask.vert"),
-//			Gdx.files.internal("shaders/mask.frag")
-//		)
-//		if (!shaderBackground.isCompiled || !shaderMask.isCompiled) {
-//			Gdx.app.error(
-//				"Shader",
-//				"Shader compilation failed:\n${shaderBackground.log}\n${shaderMask.log}"
-//			)
-//			Gdx.app.exit()
-//		}
-
 		// Загрузка текстур
-		textureBackground = Texture(Gdx.files.internal("background.png"))
-		textureMask = Texture(Gdx.files.internal("mask.png"))
-		textureShip = Texture(Gdx.files.internal("ship.png"))
+		hitTexture = Texture(Gdx.files.internal("cell_miss.png"))
+		cellTexture = Texture(Gdx.files.internal("cell_empty.png"))
 
 		// Создание кнопки Auto
 		Gdx.input.inputProcessor = this // Устанавливаем GameScreen как InputProcessor
@@ -88,7 +62,11 @@ class GameScreen : Stage(ScreenViewport()), InputProcessor {
 
 	fun placeShipsRandomly() {
 		playerShips.clear()
-		playerField.flatten().forEach { it.isOccupied = false }
+		playerField.forEach { row ->
+			row.forEach { cell ->
+				cell.isOccupied = false
+			}
+		}
 
 		val sizes = arrayOf(1, 1, 1, 1, 2, 2, 2, 3, 3, 4)
 		val random = Random
@@ -151,6 +129,16 @@ class GameScreen : Stage(ScreenViewport()), InputProcessor {
 			return true // Возвращаем true, чтобы событие не продолжалось дальше
 		}
 
+		// Проверяем клик по кораблям
+		for (ship in playerShips) {
+			if (ship.hitCheck(screenX, screenY)) {
+				// Обработка попадания по кораблю
+				ship.isHit = true // Устанавливаем флаг попадания
+				// Дополнительные действия, если нужно
+				return true // Возвращаем true, чтобы событие не продолжалось дальше
+			}
+		}
+
 		// Проверяем клик по ячейке игрового поля
 		val cell = playerField.flatten().firstOrNull { it.contains(screenX, screenY) }
 		cell?.let {
@@ -158,77 +146,66 @@ class GameScreen : Stage(ScreenViewport()), InputProcessor {
 			return true // Возвращаем true, чтобы событие не продолжалось дальше
 		}
 
-		// Если ни по кнопке, ни по ячейке не кликнули, возвращаем результат суперкласса
+		// Если ни по кнопке, ни по кораблю, ни по ячейке не кликнули, возвращаем результат суперкласса
 		return super.touchDown(screenX, screenY, pointer, button)
 	}
 
-
-	fun draw(batch: SpriteBatch) {
+	private fun drawCoordinates() {
+		// Рисуем цифры по горизонтали (нумерация столбцов)
 		for (i in 0 until gridSize) {
-			for (j in 0 until gridSize) {
-				playerField[i][j].draw(batch)
-			}
-		}
-		for (ship in playerShips) {
-			ship.draw(batch)
-		}
-
-		// Draw coordinates
-		for (i in 0 until gridSize) {
+			val numberText = (i + 1).toString()
 			font.draw(
 				batch,
-				"${i + 1}",
+				numberText,
 				fieldOffsetX - cellSize / 2,
-				fieldOffsetY + (i + 0.5f) * cellSize
+				fieldOffsetY + (i + 0.5f) * cellSize + font.capHeight / 2 // Центрируем текст по высоте клетки
 			)
+		}
+
+		// Рисуем буквы по вертикали (нумерация строк)
+		for (i in 0 until gridSize) {
+			val letterText = ('A' + i).toString()
 			font.draw(
 				batch,
-				('A' + i).toString(),
-				fieldOffsetX + (i + 0.5f) * cellSize,
+				letterText,
+				fieldOffsetX + (i + 0.5f) * cellSize - font.capHeight / 2, // Центрируем текст по ширине клетки
 				fieldOffsetY - cellSize / 2
 			)
 		}
 	}
 
-	fun render() {
-
-//		batch.shader = shaderBackground
-//		batch.begin()
-//		batch.draw(textureBackground, fieldOffsetX, fieldOffsetY, fieldSize, fieldSize)
-//		batch.end()
-
-//		batch.shader = shaderMask
-//		shaderMask.setUniformi("u_texture", 0)
-//		shaderMask.setUniformi("u_maskTexture", 1)
-//		textureShip.bind(0)
-//		textureMask.bind(1)
-
-		Gdx.gl.glClearColor(1f, 1f, 1f, 1f)
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
+	override fun draw() {
 		batch.begin()
-		draw(batch)
-		drawShips()
-		batch.end()
 
-		act()
-		draw()
-	}
+		// Отрисовка игрового поля
+		playerField.flatten().forEach { cell ->
+			if (cell.isHit) {
+				batch.draw(hitTexture, cell.x, cell.y, cell.size.toFloat(), cell.size.toFloat())
+			} else {
+				batch.draw(cellTexture, cell.x, cell.y, cell.size.toFloat(), cell.size.toFloat())
+			}
+		}
 
-	private fun drawShips() {
-		for (ship in playerShips) {
+		// Отрисовка кораблей
+		playerShips.forEach { ship ->
 			ship.draw(batch)
 		}
+
+		drawCoordinates()
+
+		batch.end()
+
+		// Вызываем метод draw() суперкласса для отрисовки дочерних элементов Stage
+		super.draw()
 	}
+
 
 	override fun dispose() {
 		batch.dispose()
 		font.dispose()
 		skin.dispose()
-		shaderBackground.dispose()
-		shaderMask.dispose()
-		textureBackground.dispose()
-		textureMask.dispose()
+		hitTexture.dispose() // Освобождаем текстуру попадания
+		cellTexture.dispose() // Освобождаем текстуру клетки игрового поля
 		playerField.flatten().forEach {
 			it.dispose()
 		}
