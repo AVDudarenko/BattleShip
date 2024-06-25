@@ -2,6 +2,7 @@ package com.mygdx.game
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -15,14 +16,14 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import kotlin.random.Random
 
-class GameScreen : Stage(ScreenViewport()), InputProcessor {
+class GameScreen(private val game: BattleShipGame) : Stage(ScreenViewport()), Screen, InputProcessor {
 	private val batch = SpriteBatch()
 	private val font = BitmapFont()
 	private val skin = Skin(Gdx.files.internal("uiskin.json"))
 	private val autoButton: TextButton
 
 	private val gridSize = 10
-	private val cellSize = 40f // Фиксированный размер клетки в пикселях
+	private val cellSize = 40f
 	private val fieldSize = cellSize * gridSize
 	private val screenWidth = Gdx.graphics.width.toFloat()
 	private val screenHeight = Gdx.graphics.height.toFloat()
@@ -38,16 +39,14 @@ class GameScreen : Stage(ScreenViewport()), InputProcessor {
 		}
 	}
 	private val playerShips = mutableListOf<Ship>()
-	private lateinit var hitTexture: Texture // Текстура попадания по кораблю
-	private lateinit var cellTexture: Texture // Текстура клетки игрового поля
+	private lateinit var hitTexture: Texture
+	private lateinit var cellTexture: Texture
 
 	init {
-		// Загрузка текстур
 		hitTexture = Texture(Gdx.files.internal("cell_miss.png"))
 		cellTexture = Texture(Gdx.files.internal("cell_empty.png"))
 
-		// Создание кнопки Auto
-		Gdx.input.inputProcessor = this // Устанавливаем GameScreen как InputProcessor
+		Gdx.input.inputProcessor = this
 		autoButton = TextButton("Auto", skin)
 		autoButton.setSize(200f, 100f)
 		autoButton.setPosition(screenWidth - autoButton.width - 10f, 100f)
@@ -60,6 +59,7 @@ class GameScreen : Stage(ScreenViewport()), InputProcessor {
 		addActor(autoButton)
 	}
 
+	// Остальной код из вашего класса GameScreen (placeShipsRandomly, canPlaceShip, isValidPosition, touchDown, draw, dispose)
 	fun placeShipsRandomly() {
 		playerShips.clear()
 		playerField.forEach { row ->
@@ -149,30 +149,46 @@ class GameScreen : Stage(ScreenViewport()), InputProcessor {
 		// Если ни по кнопке, ни по кораблю, ни по ячейке не кликнули, возвращаем результат суперкласса
 		return super.touchDown(screenX, screenY, pointer, button)
 	}
-
 	private fun drawCoordinates() {
-		// Рисуем цифры по горизонтали (нумерация столбцов)
 		for (i in 0 until gridSize) {
 			val numberText = (i + 1).toString()
 			font.draw(
 				batch,
 				numberText,
 				fieldOffsetX - cellSize / 2,
-				fieldOffsetY + (i + 0.5f) * cellSize + font.capHeight / 2 // Центрируем текст по высоте клетки
+				fieldOffsetY + (i + 0.5f) * cellSize + font.capHeight / 2
 			)
 		}
 
-		// Рисуем буквы по вертикали (нумерация строк)
 		for (i in 0 until gridSize) {
 			val letterText = ('A' + i).toString()
 			font.draw(
 				batch,
 				letterText,
-				fieldOffsetX + (i + 0.5f) * cellSize - font.capHeight / 2, // Центрируем текст по ширине клетки
+				fieldOffsetX + (i + 0.5f) * cellSize - font.capHeight / 2,
 				fieldOffsetY - cellSize / 2
 			)
 		}
 	}
+
+	override fun show() {}
+
+	override fun render(delta: Float) {
+		Gdx.gl.glClearColor(1f, 1f, 1f, 1f)
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+		act(delta)
+		draw()
+	}
+
+	override fun resize(width: Int, height: Int) {}
+
+	override fun pause() {}
+
+	override fun resume() {}
+
+	override fun hide() {}
+
 
 	override fun draw() {
 		batch.begin()
@@ -199,13 +215,13 @@ class GameScreen : Stage(ScreenViewport()), InputProcessor {
 		super.draw()
 	}
 
-
 	override fun dispose() {
+		super.dispose()
 		batch.dispose()
 		font.dispose()
 		skin.dispose()
-		hitTexture.dispose() // Освобождаем текстуру попадания
-		cellTexture.dispose() // Освобождаем текстуру клетки игрового поля
+		hitTexture.dispose()
+		cellTexture.dispose()
 		playerField.flatten().forEach {
 			it.dispose()
 		}
