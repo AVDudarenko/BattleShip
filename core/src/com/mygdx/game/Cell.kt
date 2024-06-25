@@ -11,15 +11,6 @@ class Cell(val x: Float, val y: Float, val size: Int) {
 	private val textureHit = Texture(Gdx.files.internal("cell_hit.png"))
 	private val textureMiss = Texture(Gdx.files.internal("cell_miss.png"))
 
-	fun draw(batch: SpriteBatch) {
-		val texture = when {
-			isHit && isOccupied -> textureHit
-			isHit -> textureMiss
-			else -> textureEmpty
-		}
-		batch.draw(texture, x, y, size.toFloat(), size.toFloat())
-	}
-
 	fun contains(screenX: Int, screenY: Int): Boolean {
 		val relativeY = Gdx.graphics.height - screenY
 		return screenX in x.toInt() until (x + size).toInt() && relativeY in y.toInt() until (y + size).toInt()

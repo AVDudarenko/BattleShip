@@ -24,7 +24,7 @@ class MainMenuScreen(private val game: BattleShipGame) : Stage(ScreenViewport())
         startButton.setPosition((Gdx.graphics.width - startButton.width) / 2, (Gdx.graphics.height - startButton.height) / 2)
         startButton.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                game.setScreen(GameScreen(game))
+                game.setScreen(GameScreen())
             }
         })
         addActor(startButton)

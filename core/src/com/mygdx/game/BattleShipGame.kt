@@ -10,10 +10,6 @@ class BattleShipGame : Game() {
 		setScreen(MainMenuScreen(this))
 	}
 
-	override fun render() {
-		super.render()
-	}
-
 	override fun dispose() {
 		screen.dispose()
 	}
