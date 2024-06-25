@@ -4,8 +4,10 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -50,8 +52,8 @@ class GameScreen : InputAdapter() {
         val buttonStyle = TextButton.TextButtonStyle()
         buttonStyle.font = font
         autoButton = TextButton("Auto", skin)
-        autoButton.setSize(100f, 50f)
-        autoButton.setPosition(screenWidth - 110f, screenHeight - 60f)
+        autoButton.setSize(200f, 100f)
+		autoButton.setPosition(screenWidth - autoButton.width - 10f, 100f)
 
         autoButton.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
