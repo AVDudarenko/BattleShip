@@ -65,7 +65,7 @@ class GameScreen : InputAdapter() {
     fun placeShipsRandomly() {
         playerShips.clear()
         playerField.flatten().forEach { it.isOccupied = false }
-        val sizes = arrayOf(2, 3, 3, 4, 5)
+		val sizes = arrayOf(1, 1, 1, 1, 2, 2, 2, 3, 3, 4)
         for (size in sizes) {
             var placed = false
             while (!placed) {
@@ -82,20 +82,36 @@ class GameScreen : InputAdapter() {
         }
     }
 
-    fun canPlaceShip(x: Int, y: Int, size: Int, horizontal: Boolean): Boolean {
-        if (horizontal) {
-            if (x + size > gridSize) return false
-            for (i in 0 until size) {
-                if (playerField[x + i][y].isOccupied) return false
-            }
-        } else {
-            if (y + size > gridSize) return false
-            for (i in 0 until size) {
-                if (playerField[x][y + i].isOccupied) return false
-            }
-        }
-        return true
-    }
+	fun canPlaceShip(x: Int, y: Int, size: Int, horizontal: Boolean): Boolean {
+		if (horizontal) {
+			if (x + size > gridSize) return false
+			for (i in 0 until size) {
+				if (!isValidPosition(x + i, y)) return false
+			}
+		} else {
+			if (y + size > gridSize) return false
+			for (i in 0 until size) {
+				if (!isValidPosition(x, y + i)) return false
+			}
+		}
+		return true
+	}
+
+	fun isValidPosition(x: Int, y: Int): Boolean {
+		if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) return false
+		if (playerField[x][y].isOccupied) return false
+		// Check surrounding cells
+		for (dx in -1..1) {
+			for (dy in -1..1) {
+				val nx = x + dx
+				val ny = y + dy
+				if (nx in 0 until gridSize && ny in 0 until gridSize && playerField[nx][ny].isOccupied) {
+					return false
+				}
+			}
+		}
+		return true
+	}
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         val cell = playerField.flatten().firstOrNull { it.contains(screenX, screenY) }
